@@ -8,13 +8,10 @@ import java.util.ArrayList;
 
 public class CardExtractor {
 
-
-
-
     public static void main(String[] args) throws IOException{
         String url = "https://www.fowsystem.com/de/Kartendatenbank?order=insasc&page=&CERCA=cerca&cardname=&block=ALL&edition=Die+Wiedergeburt+von+Walhalla&REGATT=or&cardnumber=&ABILITYTEXT=&ATKMIN=0&ATKMAX=2500&DEFMIN=0&DEFMAX=2500";
         Document doc = Jsoup.connect(url).get();
-        log(doc.title());
+        System.out.println(doc.title());
 
         String nameQuery = ".box_nomecarta span";
         String elementQuery = ".preview";
@@ -39,9 +36,6 @@ public class CardExtractor {
         csv.close();
         System.out.println("Done!");
 
-    }
-    private static void log(String msg, String... vals) {
-        System.out.println(String.format(msg, vals));
     }
 }
 
