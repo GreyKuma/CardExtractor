@@ -9,8 +9,10 @@ import java.util.ArrayList;
 public class CardExtractor {
 
     public static void main(String[] args) throws IOException{
-        String url = "https://www.fowsystem.com/de/Kartendatenbank?order=insasc&page=&CERCA=cerca&cardname=&block=ALL&edition=Die+Wiedergeburt+von+Walhalla&REGATT=or&cardnumber=&ABILITYTEXT=&ATKMIN=0&ATKMAX=2500&DEFMIN=0&DEFMAX=2500";
-        Document doc = Jsoup.connect(url).get();
+        String walhallaUrl = "https://www.fowsystem.com/de/Kartendatenbank?order=insasc&page=&CERCA=cerca&cardname=&block=ALL&edition=Die+Wiedergeburt+von+Walhalla&REGATT=or&cardnumber=&ABILITYTEXT=&ATKMIN=0&ATKMAX=2500&DEFMIN=0&DEFMAX=2500";
+        String walhallaStarterDecksUrl = "https://www.fowsystem.com/de/Kartendatenbank?order=insasc&page=&CERCA=cerca&cardname=&block=ALL&edition=Neu-Walhalla-Starterdeck&REGATT=or&cardnumber=&ABILITYTEXT=&ATKMIN=0&ATKMAX=2500&DEFMIN=0&DEFMAX=2500";
+//        Document doc = Jsoup.connect(walhallaUrl).get();
+        Document doc = Jsoup.connect(walhallaStarterDecksUrl).get();
         System.out.println(doc.title());
 
         String nameQuery = ".box_nomecarta span";
@@ -22,10 +24,9 @@ public class CardExtractor {
 //        }
         ArrayList<String> data = new ArrayList<>();
         for (Element card : cardNames) {
-            data.add(card.select(idQuery).text());
-
-            data.add("https://www.fowsystem.com" + card.attr("href"));
             data.add(card.select(nameQuery).text());
+            data.add(card.select(idQuery).text());
+            data.add("https://www.fowsystem.com" + card.attr("href"));
         }
 
         CSV csv = new CSV("newWalhalla.csv", 3);

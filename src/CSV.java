@@ -22,6 +22,7 @@ public class CSV{
 
 
     public void append(String str){
+        str = "\"" + str + "\"";
         stringBuilder.append(str);
         if(currentColumn == width - 1){
             currentColumn = (currentColumn + 1)%width;
@@ -29,7 +30,7 @@ public class CSV{
             return;
         }
         currentColumn++;
-        stringBuilder.append(';');
+        stringBuilder.append(',');
     }
 
     public void append(String[] strArray){
