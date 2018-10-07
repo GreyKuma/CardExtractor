@@ -26,6 +26,7 @@ public class CardExtractor {
         ArrayList<String> data = new ArrayList<>();
         for (Element card : cardNames) {
             data.add(card.select(idQuery).text());
+
             data.add("https://www.fowsystem.com" + card.attr("href"));
             data.add(card.select(nameQuery).text());
         }
