@@ -1,4 +1,6 @@
-public class MultiLanguageString {
+import java.io.Serializable;
+
+public class MultiLanguageString implements Serializable {
     String de;
     String en;
 

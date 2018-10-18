@@ -1,21 +1,31 @@
-public class Card {
-    int idNumeric;
-    String idStr;
+import java.io.Serializable;
 
-    MultiLanguageString name = new MultiLanguageString();
-    MultiLanguageString edition = new MultiLanguageString();
-    MultiLanguageString type = new MultiLanguageString();
-    MultiLanguageString race = new MultiLanguageString();
-    MultiLanguageString attribute = new MultiLanguageString();
-    MultiLanguageString ability = new MultiLanguageString();
-    MultiLanguageString flavor = new MultiLanguageString();
+public class Card implements Serializable {
+    public int idNumeric;
+    public String idStr;
 
-    String rarity;
-    String imageUrl;
+    public MultiLanguageString name;
+    public MultiLanguageString edition;
+    public MultiLanguageString type;
+    public MultiLanguageString race;
+    public MultiLanguageString attribute;
+    public MultiLanguageString ability;
+    public MultiLanguageString flavor;
 
-    int cost;
-    int atk;
-    int def;
+    public String rarity;
+    public String imageUrl;
 
-    // Date updated = new Date();
+    public int cost;
+    public int atk;
+    public int def;
+
+    public Card() {
+        name = new MultiLanguageString();
+        edition = new MultiLanguageString();
+        type = new MultiLanguageString();
+        race = new MultiLanguageString();
+        attribute = new MultiLanguageString();
+        ability = new MultiLanguageString();
+        flavor = new MultiLanguageString();
+    }
 }

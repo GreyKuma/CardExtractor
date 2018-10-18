@@ -122,20 +122,21 @@ public class CardRequester {
                     while (
                         cur_data_de.nextElementSibling() != null &&
                         !cur_data_de.nextElementSibling().text().toLowerCase().contains("stimmungstext")) {
-                        img = cur_data_de.selectFirst("img");
+                        img = (cur_data_de = cur_data_de.nextElementSibling()).selectFirst("img");
                         if (img != null) {
                             ret.ability.de += "\n<IMG>" + img.attr("src") + "</IMG>";
                         } else {
                             ret.ability.de += "\n";
                         }
-                        ret.ability.de += (cur_data_de = cur_data_de.nextElementSibling()).text();
+                        ret.ability.de += cur_data_de.text();
                     }
                     cur_data_de = cur_data_de.children().last();
                 } else if (cur_data_de.text().toLowerCase().startsWith("stimmungstext")) {
-                    ret.flavor.de = (cur_data_de = cur_data_de.parent().nextElementSibling().children().last()).text();
-                    while (cur_data_de.parent().nextElementSibling() != null) {
-                        ret.flavor.de += "\n" + (cur_data_de = cur_data_de.parent().nextElementSibling()).text();
+                    ret.flavor.de = (cur_data_de = cur_data_de.parent().nextElementSibling()).text();
+                    while (cur_data_de.nextElementSibling() != null) {
+                        ret.flavor.de += "\n" + (cur_data_de = cur_data_de.nextElementSibling()).text();
                     }
+                    cur_data_de = cur_data_de.children().first();
                 }
 
                 last_data_de = cur_data_de;
@@ -153,57 +154,6 @@ public class CardRequester {
                     )
                 )
             );
-            /*
-            if (Math.min(data_en.size(), data_de.size()) >= 10) {
-                ret.name = new MultiLanguageString(){{
-                    de = data_de.get(0).text();
-                    en = data_en.get(0).text();
-                }};
-
-                ret.edition = new MultiLanguageString(){{
-                    de = data_de.get(1).text();
-                    en = data_en.get(1).text();
-                }};
-
-                ret.type = new MultiLanguageString(){{
-                    de = data_de.get(2).text();
-                    en = data_en.get(2).text();
-                }};
-
-                ret.race = new MultiLanguageString(){{
-                    de = data_de.get(3).text();
-                    en = data_en.get(3).text();
-                }};
-
-                Element cost = data_de.get(4).children().last();
-                if (cost != null) {
-                    ret.cost = Integer.parseInt(cost.text());
-                } else {
-                    throw new IOException("Could not read 'cost' of card.");
-                }
-
-                ret.atk = Integer.parseInt(data_de.get(5).text());
-                ret.def = Integer.parseInt(data_de.get(6).text());
-
-                ret.attribute = new MultiLanguageString(){{
-                    de = data_de.get(7).text();
-                    en = data_en.get(7).text();
-                }};
-
-                ret.rarity = data_de.get(8).text();
-
-                ret.ability = new MultiLanguageString(){{
-                    de = data_de.get(9).text();
-                    en = data_en.get(9).text();
-                }};
-
-                ret.ability = new MultiLanguageString(){{
-                    de = data_de.get(10).text();
-                    en = "UNDEFINED";
-                }};
-            } else {
-                throw new IOException("Wrong count of card-data.");
-            }*/
         } else {
             throw new IOException("No card-data found.");
         }

@@ -12,6 +12,7 @@ public class main {
 
     public static void main(String[] args) throws IOException{
         CardCsvWriter csv = null;
+        CardJsonWriter json = null;
 
         try {
             System.out.println("Starting:");
@@ -21,8 +22,13 @@ public class main {
             if (f.exists()) {
                 f.delete();
             }
+            f = new File("newWalhalla.json");
+            if (f.exists()) {
+                f.delete();
+            }
 
-            csv = new CardCsvWriter("newWalhalla.csv");
+            csv = null; // new CardCsvWriter("newWalhalla.csv");
+            json = new CardJsonWriter("newWalhalla.json");
             CardListRequest cardListRequest = new CardListRequest();
             List<CardRequest> cardRequests = null;
 
@@ -40,7 +46,12 @@ public class main {
                     System.out.println("   [" + i + "]: \"" + cards.get(i).name.de + "\" | \"" +
                             cards.get(i).name.en + "\"");
 
-                    csv.append(cards.get(i));
+                    if (csv != null) {
+                        csv.append(cards.get(i));
+                    }
+                    if (json != null) {
+                        json.append(cards.get(i));
+                    }
                     // database.getRoot().push().setValue(cards.get(i), null);
                 }
 
@@ -52,6 +63,9 @@ public class main {
         } finally {
             if (csv != null) {
                 csv.close();
+            }
+            if (json != null) {
+                json.close();
             }
         }
 

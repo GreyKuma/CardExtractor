@@ -2,10 +2,8 @@
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
-import java.nio.charset.StandardCharsets;
 
 public class CardCsvWriter {
-
     private String path;
     private RandomAccessFile file;
 
@@ -16,7 +14,7 @@ public class CardCsvWriter {
     }
 
     private void appendString(String str) throws IOException {
-        byte[] strBytes = str.getBytes(StandardCharsets.UTF_8);
+        byte[] strBytes = str.getBytes("UTF-8");
         file.getChannel().map(
                 FileChannel.MapMode.READ_WRITE,
                 file.length(), strBytes.length)
