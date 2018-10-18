@@ -11,12 +11,14 @@ public class main {
     // private static DatabaseReference database;
 
     public static void main(String[] args) throws IOException{
+        boolean all = true;
+
         CardCsvWriter csv = null;
         CardJsonWriter json = null;
+        CardFirebaseWriter fire = null;
 
         try {
             System.out.println("Starting:");
-            // initFirebase();
 
             File f = new File("newWalhalla.csv");
             if (f.exists()) {
@@ -27,8 +29,10 @@ public class main {
                 f.delete();
             }
 
-            csv = null; // new CardCsvWriter("newWalhalla.csv");
-            json = new CardJsonWriter("newWalhalla.json");
+            csv = null;
+            json = null; // new CardJsonWriter("newWalhalla.json");
+            fire = new CardFirebaseWriter("fowtest-f30af-service-account.json");
+
             CardListRequest cardListRequest = new CardListRequest();
             List<CardRequest> cardRequests = null;
 
@@ -52,12 +56,14 @@ public class main {
                     if (json != null) {
                         json.append(cards.get(i));
                     }
+                    if(fire != null) {
+                        fire.append(cards.get(i));
+                    }
                     // database.getRoot().push().setValue(cards.get(i), null);
                 }
 
                 cardListRequest.page++;
-            } while(cardRequests != null && cardRequests.size() > 0);
-
+            } while(all && cardRequests != null && cardRequests.size() > 0);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

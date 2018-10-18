@@ -1,8 +1,8 @@
 import java.io.Serializable;
 
 public class MultiLanguageString implements Serializable {
-    String de;
-    String en;
+    public String de;
+    public String en;
 
     MultiLanguageString(){
         this("","");
