@@ -1,6 +1,8 @@
+package model;
+
 import java.io.Serializable;
 
-public class Card implements Serializable {
+public class CardRaw implements Serializable {
     public int idNumeric;
     public String idStr;
 
@@ -14,12 +16,12 @@ public class Card implements Serializable {
 
     public String rarity;
     public String imageUrl;
+    public String cost;
 
-    public int cost;
     public int atk;
     public int def;
 
-    public Card() {
+    public CardRaw() {
         name = new MultiLanguageString();
         edition = new MultiLanguageString();
         type = new MultiLanguageString();

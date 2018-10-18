@@ -10,7 +10,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="CardExtractor" target="1.5" />
+      <module name="CardExtractor" target="10" />
     </bytecodeTargetLevel>
   </component>
 </project>

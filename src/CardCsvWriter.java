@@ -1,4 +1,6 @@
 
+import model.CardRaw;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
@@ -25,29 +27,29 @@ public class CardCsvWriter {
         appendString("idNumeric;idStr;name_en;name_de;edition_en;edition_de;type_en;type_de;race_en;race_de;attribute_en;attribute_de;ability_en;ability_de;flavor_en;flavor_de;rarity;cost;atk;dev;imageUrl\n");
     }
 
-    public void append(Card card) throws IOException {
+    public void append(CardRaw cardRaw) throws IOException {
         appendString(new StringBuilder()
-                .append(card.idNumeric).append(";\"")
-                .append(card.idStr).append("\";\"")
-                .append(card.name.en).append("\";\"")
-                .append(card.name.de).append("\";\"")
-                .append(card.edition.en).append("\";\"")
-                .append(card.edition.de).append("\";\"")
-                .append(card.type.en).append("\";\"")
-                .append(card.type.de).append("\";\"")
-                .append(card.race.en).append("\";\"")
-                .append(card.race.de).append("\";\"")
-                .append(card.attribute.en.replace("\"", "\\\"")).append("\";\"")
-                .append(card.attribute.de.replace("\"", "\\\"")).append("\";\"")
-                .append(card.ability.en.replace("\"", "\\\"")).append("\";\"")
-                .append(card.ability.de.replace("\"", "\\\"")).append("\";\"")
-                .append(card.flavor.en.replace("\"", "\\\"")).append("\";\"")
-                .append(card.flavor.de.replace("\"", "\\\"")).append("\";\"")
-                .append(card.rarity).append("\";")
-                .append(card.cost).append(';')
-                .append(card.atk).append(';')
-                .append(card.def).append(";\"")
-                .append(card.imageUrl).append("\"\n")
+                .append(cardRaw.idNumeric).append(";\"")
+                .append(cardRaw.idStr).append("\";\"")
+                .append(cardRaw.name.en).append("\";\"")
+                .append(cardRaw.name.de).append("\";\"")
+                .append(cardRaw.edition.en).append("\";\"")
+                .append(cardRaw.edition.de).append("\";\"")
+                .append(cardRaw.type.en).append("\";\"")
+                .append(cardRaw.type.de).append("\";\"")
+                .append(cardRaw.race.en).append("\";\"")
+                .append(cardRaw.race.de).append("\";\"")
+                .append(cardRaw.attribute.en.replace("\"", "\\\"")).append("\";\"")
+                .append(cardRaw.attribute.de.replace("\"", "\\\"")).append("\";\"")
+                .append(cardRaw.ability.en.replace("\"", "\\\"")).append("\";\"")
+                .append(cardRaw.ability.de.replace("\"", "\\\"")).append("\";\"")
+                .append(cardRaw.flavor.en.replace("\"", "\\\"")).append("\";\"")
+                .append(cardRaw.flavor.de.replace("\"", "\\\"")).append("\";\"")
+                .append(cardRaw.rarity).append("\";")
+                .append(cardRaw.cost).append(';')
+                .append(cardRaw.atk).append(';')
+                .append(cardRaw.def).append(";\"")
+                .append(cardRaw.imageUrl).append("\"\n")
         .toString());
     }
 

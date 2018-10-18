@@ -1,7 +1,7 @@
+import model.CardRaw;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.net.URL;
@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CardRequester {
-    public Card request (CardRequest request) throws IOException {
-        Card ret = new Card();
+    public CardRaw request (CardRequest request) throws IOException {
+        CardRaw ret = new CardRaw();
         ret.idNumeric = request.id;
 
         Document doc = Jsoup.parse(new URL(request.toUrl()).openStream(), "UTF-8", request.toUrl()); /// Jsoup.connect(request.toUrl()).get();
@@ -44,7 +44,7 @@ public class CardRequester {
                 } else if (cur_data_en.text().toLowerCase().startsWith("race")) {
                     ret.race.en = (cur_data_en = cur_data_en.nextElementSibling()).text();
                 } else if (cur_data_en.text().toLowerCase().startsWith("cost")) {
-                    ret.cost = (cur_data_en = cur_data_en.nextElementSibling()).children().size();
+                    ret.cost = (cur_data_en = cur_data_en.nextElementSibling()).html();
                 } else if (cur_data_en.text().toLowerCase().startsWith("atk")) {
                     ret.atk = Integer.parseInt((cur_data_en = cur_data_en.nextElementSibling()).text());
                 } else if (cur_data_en.text().toLowerCase().startsWith("def")) {
@@ -54,7 +54,25 @@ public class CardRequester {
                 } else if (cur_data_en.text().toLowerCase().startsWith("rarity")) {
                     ret.rarity = (cur_data_en = cur_data_en.nextElementSibling()).text();
                 } else if (cur_data_en.text().toLowerCase().startsWith("ability")) {
-                    img = (cur_data_en = cur_data_en.parent().nextElementSibling()).selectFirst("img");
+                    cur_data_en = cur_data_en.parent().nextElementSibling().children().first();
+                    do {
+                        if (ret.ability.en.length() > 0 && cur_data_en.html().length() > 0) {
+                            ret.ability.en += "\n";
+                        }
+                        ret.ability.en += cur_data_en.html();
+                    } while (
+                        (
+                            cur_data_en.nextElementSibling() != null &&
+                            !cur_data_en.nextElementSibling().text().toLowerCase().contains("flavor") &&
+                            (cur_data_en = cur_data_en.nextElementSibling()) != null
+                        ) || (
+                            cur_data_en.parent().nextElementSibling() != null &&
+                            !cur_data_en.parent().nextElementSibling().text().toLowerCase().contains("flavor") &&
+                            (cur_data_en = cur_data_en.parent().nextElementSibling().children().first()) != null
+                        )
+                    );
+
+                    /*img = (cur_data_en = cur_data_en.parent().nextElementSibling()).selectFirst("img");
                     if (img != null) {
                         ret.ability.en += "<IMG>" + img.attr("src") + "</IMG>";
                     }
@@ -70,7 +88,7 @@ public class CardRequester {
                         }
                         ret.ability.en += cur_data_en.text();
                     }
-                    cur_data_en = cur_data_en.children().last();
+                    cur_data_en = cur_data_en.children().last();*/
                 } else if (cur_data_en.text().toLowerCase().startsWith("flavor")) {
                     ret.flavor.en = (cur_data_en = cur_data_en.parent().nextElementSibling().children().last()).text();
                     while (cur_data_en.parent().nextElementSibling() != null) {
@@ -104,7 +122,7 @@ public class CardRequester {
                 } else if (cur_data_de.text().toLowerCase().startsWith("eigenschaften")) {
                     ret.race.de = (cur_data_de = cur_data_de.nextElementSibling()).text();
                 } else if (cur_data_de.text().toLowerCase().startsWith("kosten")) {
-                    ret.cost = (cur_data_de = cur_data_de.nextElementSibling()).children().size();
+                    ret.cost = (cur_data_de = cur_data_de.nextElementSibling()).html();
                 } else if (cur_data_de.text().toLowerCase().startsWith("atk")) {
                     ret.atk = Integer.parseInt((cur_data_de = cur_data_de.nextElementSibling()).text());
                 } else if (cur_data_de.text().toLowerCase().startsWith("def")) {
@@ -114,9 +132,28 @@ public class CardRequester {
                 } else if (cur_data_de.text().toLowerCase().startsWith("seltenheit")) {
                     ret.rarity = (cur_data_de = cur_data_de.nextElementSibling()).text();
                 } else if (cur_data_de.text().toLowerCase().startsWith("fähigkeit")) {
-                    img = (cur_data_de = cur_data_de.parent().nextElementSibling()).selectFirst("img");
-                    if (img != null) {
-                        ret.ability.de += "<IMG>" + img.attr("src") + "</IMG>";
+                    cur_data_de = cur_data_de.parent().nextElementSibling().children().first();
+                    do {
+                        if (ret.ability.de.length() > 0 && cur_data_de.html().length() > 0) {
+                            ret.ability.de += "\n";
+                        }
+                        ret.ability.de += cur_data_de.html();
+                    } while (
+                        (
+                            cur_data_de.nextElementSibling() != null &&
+                            !cur_data_de.nextElementSibling().text().toLowerCase().contains("stimmungstext") &&
+                            (cur_data_de = cur_data_de.nextElementSibling()) != null
+                        ) || (
+                            cur_data_de.parent().nextElementSibling() != null &&
+                            !cur_data_de.parent().nextElementSibling().text().toLowerCase().contains("stimmungstext") &&
+                            (cur_data_de = cur_data_de.parent().nextElementSibling().children().first()) != null
+                        )
+                    );
+
+                    /*
+                        while (cur_data_de.is("img")) {
+                        ret.ability.de += "<IMG>" + img.attr("src") + "</IMG>\n";
+                        cur_data_de = cur_data_de.nextElementSibling();
                     }
                     ret.ability.de += cur_data_de.text();
                     while (
@@ -130,7 +167,7 @@ public class CardRequester {
                         }
                         ret.ability.de += cur_data_de.text();
                     }
-                    cur_data_de = cur_data_de.children().last();
+                    cur_data_de = cur_data_de.children().last(); */
                 } else if (cur_data_de.text().toLowerCase().startsWith("stimmungstext")) {
                     ret.flavor.de = (cur_data_de = cur_data_de.parent().nextElementSibling()).text();
                     while (cur_data_de.nextElementSibling() != null) {
@@ -160,8 +197,8 @@ public class CardRequester {
         return ret;
     }
 
-    public List<Card> request (List<CardRequest> requests) throws IOException {
-        ArrayList<Card> ret = new ArrayList<Card>();
+    public List<CardRaw> request (List<CardRequest> requests) throws IOException {
+        ArrayList<CardRaw> ret = new ArrayList<CardRaw>();
         for (CardRequest request: requests) {
             try {
                 ret.add(request(request));
