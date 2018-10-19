@@ -1,6 +1,8 @@
 import model.Card;
 import model.CardRaw;
+import model.CardSimpleProp;
 import model.ModelHelper;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -9,11 +11,11 @@ import java.nio.channels.FileChannel;
 public class CardJsonWriter {
     private String path;
     private RandomAccessFile file;
-    private ModelHelper helper;
+    private ModelHelper modelHelper;
 
     CardJsonWriter(String path) throws IOException {
         this.path = path;
-        this.helper = new ModelHelper();
+        this.modelHelper = new ModelHelper();
         this.open();
     }
 
@@ -43,17 +45,66 @@ public class CardJsonWriter {
         obj.put("name", new JSONObject().put("en", card.name.en).put("de", card.name.de));
 
         obj.put("edition", card.edition);
-        obj.put("type", card.type);
-        obj.put("race", card.race);
 
-        obj.put("attribute", card.attribute);
-        obj.put("ability", card.ability);
+        if (card.type != null) {
+            JSONArray type = new JSONArray();
+            card.type.forEach(t -> type.put(t));
+            obj.put("type", type);
+        }
+
+        if (card.race != null) {
+            JSONArray race = new JSONArray();
+            card.race.forEach(t -> race.put(t));
+            obj.put("race", race);
+        }
+
+        if (card.attribute != null) {
+            JSONArray attribute = new JSONArray();
+            card.attribute.forEach(t -> attribute.put(t));
+            obj.put("attribute", attribute);
+        }
+
+        if (card.ability != null) {
+            JSONArray ability = new JSONArray();
+            card.ability.forEach(t -> {
+                JSONObject abilityObj = new JSONObject();
+                abilityObj.put("type", t.type);
+                if (t.value != null) {
+                    abilityObj.put("value", new JSONObject().put("en", t.value.en).put("de", t.value.de));
+                }
+
+                if (t.cost != null) {
+                    JSONArray cost = new JSONArray();
+                    t.cost.forEach(c -> {
+                        JSONObject costObj = new JSONObject();
+                        costObj.put("type", c.type);
+                        costObj.put("count", c.count);
+                        cost.put(costObj);
+                    });
+                    abilityObj.put("cost", cost);
+                }
+
+                ability.put(abilityObj);
+            });
+            obj.put("ability", ability);
+        }
+
+        if (card.cost != null) {
+            JSONArray cost = new JSONArray();
+            card.cost.forEach(c -> {
+                JSONObject costObj = new JSONObject();
+                costObj.put("type", c.type);
+                costObj.put("count", c.count);
+                cost.put(costObj);
+            });
+            obj.put("cost", cost);
+        }
 
         if (card.flavor != null) {
             obj.put("flavor", new JSONObject().put("en", card.flavor.en).put("de", card.flavor.de));
         }
+
         obj.put("rarity", card.rarity);
-        obj.put("cost", card.cost);
         obj.put("atk", card.atk);
         obj.put("def", card.def);
         obj.put("imageUrl", card.imageUrl);
@@ -64,7 +115,7 @@ public class CardJsonWriter {
     }
 
     public void append(CardRaw cardRaw) throws IOException {
-        append(helper.processCardRaw(cardRaw));
+        append(modelHelper.processCardRaw(cardRaw));
         /*
         JSONObject obj = new JSONObject();
 
@@ -89,12 +140,91 @@ public class CardJsonWriter {
     }
 
     public void close() throws IOException {
-        appendString("]\n}", -2);
+        appendString("],\n", -2);
+
+        System.out.println("  Insert CardTypes:");
+        JSONArray cardTypes = new JSONArray();
+        for (CardSimpleProp cardSimpleProp : modelHelper.cardTypes) {
+            System.out.println("   [" + cardSimpleProp.id + "]: \"" +
+                    cardSimpleProp.value.de + "\" | \"" +
+                    cardSimpleProp.value.en + "\"");
+
+            cardTypes.put(new JSONObject()
+                    .put("id", cardSimpleProp.id)
+                    .put("value", new JSONObject()
+                        .put("en", cardSimpleProp.value.en)
+                        .put("de", cardSimpleProp.value.de)));
+        }
+        appendString("\"cardTypes\": " + cardTypes.toString(1) + ",\n");
+
+        System.out.println("  Insert CardEdition:");
+        JSONArray cardEdition = new JSONArray();
+        for (CardSimpleProp cardSimpleProp : modelHelper.cardEdition) {
+            System.out.println("   [" + cardSimpleProp.id + "]: \"" +
+                    cardSimpleProp.value.de + "\" | \"" +
+                        cardSimpleProp.value.en + "\"");
+
+            cardEdition.put(new JSONObject()
+                    .put("id", cardSimpleProp.id)
+                    .put("value", new JSONObject()
+                            .put("en", cardSimpleProp.value.en)
+                            .put("de", cardSimpleProp.value.de)));
+        }
+        appendString("\"cardEdition\": " + cardEdition.toString(1) + ",\n");
+
+
+        System.out.println("  Insert CardAttributes:");
+        JSONArray cardAttributes = new JSONArray();
+        for (CardSimpleProp cardSimpleProp : modelHelper.cardAttribute) {
+            System.out.println("   [" + cardSimpleProp.id + "]: \"" +
+                    cardSimpleProp.value.de + "\" | \"" +
+                    cardSimpleProp.value.en + "\"");
+
+            cardAttributes.put(new JSONObject()
+                    .put("id", cardSimpleProp.id)
+                    .put("value", new JSONObject()
+                            .put("en", cardSimpleProp.value.en)
+                            .put("de", cardSimpleProp.value.de)));
+        }
+        appendString("\"cardAttributes\": " + cardAttributes.toString(1) + ",\n");
+
+
+        System.out.println("  Insert CardRace:");
+        JSONArray cardRace = new JSONArray();
+        for (CardSimpleProp cardSimpleProp : modelHelper.cardRace) {
+            System.out.println("   [" + cardSimpleProp.id + "]: \"" +
+                    cardSimpleProp.value.de + "\" | \"" +
+                    cardSimpleProp.value.en + "\"");
+
+            cardRace.put(new JSONObject()
+                    .put("id", cardSimpleProp.id)
+                    .put("value", new JSONObject()
+                            .put("en", cardSimpleProp.value.en)
+                            .put("de", cardSimpleProp.value.de)));
+        }
+        appendString("\"cardRace\": " + cardRace.toString(1) + ",\n");
+
+
+        System.out.println("  Insert CardAbilityType:");
+        JSONArray cardAbilityType = new JSONArray();
+        for (CardSimpleProp cardSimpleProp : modelHelper.cardAbilityType) {
+            System.out.println("   [" + cardSimpleProp.id + "]: \"" +
+                    cardSimpleProp.value.de + "\" | \"" +
+                    cardSimpleProp.value.en + "\"");
+
+            cardAbilityType.put(new JSONObject()
+                    .put("id", cardSimpleProp.id)
+                    .put("value", new JSONObject()
+                            .put("en", cardSimpleProp.value.en)
+                            .put("de", cardSimpleProp.value.de)));
+        }
+        appendString("\"cardAbilityType\": " + cardAbilityType.toString(1) + "\n}");
+
         file.close();
     }
 
     public void open() throws IOException {
         file = new RandomAccessFile(this.path, "rw");
-        appendString("{\n cards: [\n");
+        appendString("{\n \"cards\": [\n");
     }
 }

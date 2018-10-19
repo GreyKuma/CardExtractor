@@ -10,7 +10,7 @@ public class main {
     // private static DatabaseReference database;
 
     public static void main(String[] args) throws IOException{
-        boolean all = false;
+        boolean all = true;
 
         CardCsvWriter csv = null;
         CardJsonWriter json = null;
@@ -19,18 +19,18 @@ public class main {
         try {
             System.out.println("Starting:");
 
-            csv = null;
-            json = null; //new CardJsonWriter("newWalhalla.json");
-            fire = new CardFirebaseWriter("fowtest-f30af-service-account.json");
-
             File f = new File("newWalhalla.csv");
-            if (csv != null && f.exists()) {
+            if (f.exists()) {
                 f.delete();
             }
             f = new File("newWalhalla.json");
-            if (json != null && f.exists()) {
+            if (f.exists()) {
                 f.delete();
             }
+
+            csv = null;
+            json = new CardJsonWriter("newWalhalla.json");
+            fire = null; //new CardFirebaseWriter("fowtest-f30af-service-account.json");
 
             CardListRequest cardListRequest = new CardListRequest();
             List<CardRequest> cardRequests = null;
@@ -73,7 +73,9 @@ public class main {
                 csv.close();
             }
             if (json != null) {
-                json.close();
+                try {
+                    json.close();
+                } catch(Exception e){}
             }
             if (fire != null) {
                 try {

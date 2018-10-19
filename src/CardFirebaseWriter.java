@@ -112,7 +112,7 @@ public class CardFirebaseWriter {
             System.out.println("   [" + cardSimpleProp.id + "]:{" +
                     collection
                             .document("data")
-                            .collection("CardRace")
+                            .collection("CardAbilityType")
                             .document(Integer.toString(cardSimpleProp.id))
                             .set(cardSimpleProp.value).get().getUpdateTime() +
                     "} \"" + cardSimpleProp.value.de + "\" | \"" + cardSimpleProp.value.en + "\"");

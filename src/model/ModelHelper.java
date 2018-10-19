@@ -1,5 +1,6 @@
 package model;
 
+import com.google.common.base.Strings;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -37,6 +38,10 @@ public class ModelHelper {
             value = new MultiLanguageString("Activate", "Aktiviert");
         }});
     }
+
+    private static MultiLanguageString CardAbilityTypeRest = new MultiLanguageString("Resting", "Ausruhen");
+    private static MultiLanguageString CardAbilityTypeActivate = new MultiLanguageString("Activate", "Aktiviert");
+    private static MultiLanguageString CardAttributNone = new MultiLanguageString("No attribute", "Ohne Attribut");
 
     Integer cardProp(MultiLanguageString valuee, List<CardSimpleProp> src) {
         CardSimpleProp ret;
@@ -88,20 +93,76 @@ public class ModelHelper {
         return list;
     }
 
-    private List<CardCostProp> processCardCost(String cost) {
-        List<CardCostProp> ret = new ArrayList<>();
-
-
-        if (cost.matches("-?\\d+(\\.\\d+)?")) {
-            int typeInt = cardAttribute(new MultiLanguageString("Any", "Beliebig"));
-            ret.add(new CardCostProp() {{
-                type = typeInt;
-                count = Integer.parseInt(cost);
-            }});
-            return ret;
+    private MultiLanguageString proccessString (MultiLanguageString string) {
+        Pattern pRest = Pattern.compile("<img src=\"https://www.fowsystem.com/de/img/spossa.jpg\">");
+        Matcher mRest = pRest.matcher(string.en);
+        while (mRest.find()) {
+            String replace = "{{Ability:" + cardAbilityType(CardAbilityTypeRest) + "}}";
+            string.en = string.en.replace(mRest.group(0), replace);
+            string.de = string.de.replace(mRest.group(0), replace);
         }
 
-        Document doc = Jsoup.parse(cost);
+        Pattern pAttr = Pattern.compile("<img[^>]*>");
+        Matcher mAttr = pAttr.matcher(string.en);
+        while (mAttr.find()) {
+            String replace = "";
+            for (Integer val : processAttributeImg(mAttr.group(0))) {
+                replace += "{{Attribute:" + val.toString() + "}}";
+            }
+            string.en = string.en.replace(mAttr.group(0), replace).trim();
+            string.de = string.de.replace(mAttr.group(0), replace).trim();
+        }
+
+        Pattern pAttrNone = Pattern.compile("<span class=\"circle-text\">(\\d+)<\\/span>");
+        Matcher mAttrNone = pAttrNone.matcher(string.en);
+        while (mAttrNone.find()) {
+            String replace = Strings.repeat(
+                    "{{Attribute:" + cardAttribute(CardAttributNone) + "}}",
+                    Integer.parseInt(mAttrNone.group(1)));
+
+            string.en = string.en.replace(mAttrNone.group(0), replace).trim();
+            string.de = string.de.replace(mAttrNone.group(0), replace).trim();
+        }
+
+        Pattern pAbility = Pattern.compile("<[^<>]+>([^<>\\d\\/]+)<\\/[^<>]+>");
+        Matcher mAbility_en = pAbility.matcher(string.en);
+        while (mAbility_en.find()) { // && (mAbility_en.start() == 0 || mAbility_en.group(1).charAt(0) == '\n')) {
+            Matcher mAbility_de = pAbility.matcher(string.de);
+            if (mAbility_de.find()) { // && (mAbility_de.start() == 0 || mAbility_de.group(1).charAt(0) == '\n')) {
+                String replace;
+
+                List<CardSimpleProp> types = cardTypes.stream().filter(t -> t.value.en.equals(mAbility_en.group(1))).collect(Collectors.toList());
+                if (types.size() > 0) {
+                    replace = "{{Type:" + types.get(0).id + "}}";
+                } else {
+                    replace = "{{Ability:" + cardAbilityType(new MultiLanguageString(
+                            mAbility_en.group(1),
+                            mAbility_de.group(1)
+                    )).toString() + "}}";
+                }
+
+                string.en = string.en.replace(mAbility_en.group(0), replace).trim();
+                string.de = string.de.replace(mAbility_de.group(0), replace).trim();
+            }
+        }
+
+        Pattern pMuell = Pattern.compile("<[^>]+>([^<>]+)<\\/[^<>]+>");
+        Matcher mMuell = pMuell.matcher(string.en);
+        while (mMuell.find()) {
+            string.en = string.en.replace(mMuell.group(0), "\"" + mMuell.group(1).trim() + "\"");
+        }
+        mMuell = pMuell.matcher(string.de);
+        while (mMuell.find()) {
+            string.de = string.de.replace(mMuell.group(0), "\"" + mMuell.group(1).trim() + "\"");
+        }
+
+        return string;
+    }
+
+    private List<Integer> processAttributeImg(String string) {
+        ArrayList<Integer> ret = new ArrayList<>();
+
+        Document doc = Jsoup.parse(string);
         Elements eles = doc.select("img");
         for (Element img : eles) {
             String[] srcPath = img.attr("src").split("/");
@@ -115,13 +176,35 @@ public class ModelHelper {
                 case "fuoco":
                     typeVal = new MultiLanguageString("Fire", "Feuer");
                     break;
+                case "oscurita":
+                    typeVal = new MultiLanguageString("Darkness", "Finsternis");
+                    break;
+                case "vento":
+                    typeVal = new MultiLanguageString("Wind", "Wind");
+                    break;
+                case "acqua":
+                    typeVal = new MultiLanguageString("Water", "Wasser");
+                    break;
                 default:
-                    System.out.println("processCardCost Not found: \"" + type + "\"");
-                    typeVal = new MultiLanguageString("Any", "Beliebig");
+                    System.out.println("processAttributeImg Not found: \"" + type + "\"");
+                    typeVal = CardAttributNone;
                     break;
             }
 
-            int typeInt = cardAttribute(typeVal);
+            ret.add(cardAttribute(typeVal));
+        }
+        return ret;
+    }
+
+    private List<CardCostProp> processCardCost(String cost) {
+        List<CardCostProp> ret = new ArrayList<>();
+
+        MultiLanguageString c = proccessString(new MultiLanguageString(cost, cost));
+
+        Pattern pCost = Pattern.compile("\\{\\{Attribute:(\\d+)\\}\\}");
+        Matcher mCost = pCost.matcher(c.en);
+        while (mCost.find()) {
+            int typeInt = Integer.parseInt(mCost.group(1));
             List<CardCostProp> already = ret.stream().filter(r -> r.type == typeInt).collect(Collectors.toList());
             if (already.size() == 0) {
                 ret.add(new CardCostProp() {{
@@ -133,25 +216,12 @@ public class ModelHelper {
             }
         }
 
-        eles = doc.select("span");
-        for (Element ele : eles) {
-            int typeInt = cardAttribute(new MultiLanguageString("Any", "Beliebig"));
-            List<CardCostProp> already = ret.stream().filter(r -> r.type == typeInt).collect(Collectors.toList());
-            if (already.size() == 0) {
-                ret.add(new CardCostProp() {{
-                    type = typeInt;
-                    count = Integer.parseInt(ele.text());
-                }});
-            } else {
-                already.get(0).count++;
-            }
-        }
-
         return ret;
     }
 
     private List<CardAbilityPropEntry> processCardAbility(MultiLanguageString ability) {
         List<CardAbilityPropEntry> ret = new ArrayList<>();
+        ability = proccessString(ability);
         String[] entries_en = ability.en.split("\n");
         String[] entries_de = ability.de.split("\n");
 
@@ -159,80 +229,57 @@ public class ModelHelper {
             String[] newArray = new String[entries_de.length];
             System.arraycopy(entries_en, 0, newArray, 0, entries_en.length);
             entries_en = newArray;
+            for (int i = 0; i < entries_en.length; i++) {
+                if (entries_en[i] == null) {
+                    entries_en[i] = "";
+                }
+            }
         }
         if (entries_en.length > entries_de.length) {
             String[] newArray = new String[entries_en.length];
             System.arraycopy(entries_de, 0, newArray, 0, entries_de.length);
             entries_de = newArray;
-        }
-
-        for (int i = 0; i < entries_en.length; i++) {
-            CardAbilityPropEntry prop = new CardAbilityPropEntry(){{
-                type = 0;
-            }};
-
-            Pattern pActivate = Pattern.compile("<span class=\"circle-text\">(\\d+)<\\/span>.?\\s*");
-            Matcher mActivate = pActivate.matcher(entries_en[i]);
-            if (mActivate.find()) {
-                prop.type = 2;
-                prop.cost = processCardCost(mActivate.group(1));
-                entries_en[i] = entries_en[i].replace(mActivate.group(0), "");
-                entries_de[i] = entries_de[i].replace(mActivate.group(0), "");
-            } else {
-                Pattern pRest = Pattern.compile("<img src=\"https://www.fowsystem.com/de/img/spossa.jpg\">.?\\s*");
-                Matcher mRest = pRest.matcher(entries_en[i]);
-                if (mRest.find()) {
-                    prop.type = 1;
-                    entries_en[i] = entries_en[i].replace(mRest.group(0), "");
-                    entries_de[i] = entries_de[i].replace(mRest.group(0), "");
-                } else {
-                    Pattern pCost = Pattern.compile("<img src=\"https://www.fowsystem.com/de/img/([^/>]+).jpg\">.?\\s*");
-                    Matcher mCost = pCost.matcher(entries_en[i]);
-                    if (mCost.find()) {
-                        prop.cost = processCardCost(mCost.group(1));
-                        entries_en[i] = entries_en[i].replace(mCost.group(0), "");
-                        entries_de[i] = entries_de[i].replace(mCost.group(0), "");
-                    } else {
-                        Pattern pAddition = Pattern.compile("<[^>]+>(.+)<\\/[^<>]+>\\s*");
-                        Matcher mAddition_en = pAddition.matcher(entries_en[i]);
-                        if (mAddition_en.find() && (
-                            mAddition_en.group(0).length() == entries_en[i].length() ||
-                            mAddition_en.start() == 0
-                        )) {
-                            Matcher mAddition_de = pAddition.matcher(entries_de[i]);
-                            if (mAddition_de.find()) {
-                                prop.type = cardAbilityType(new MultiLanguageString(
-                                        mAddition_en.group(1),
-                                        mAddition_de.group(1)));
-                                if (mAddition_en.group(0).length() == entries_en[i].length()) {
-                                    if (entries_en.length < i+1) {
-                                        i++;
-                                    } else {
-                                        break;
-                                    }
-                                } else {
-                                    entries_en[i] = entries_en[i].replace(mAddition_en.group(0), "");
-                                    entries_de[i] = entries_de[i].replace(mAddition_de.group(0), "");
-                                }
-                            }
-                        }
-                    }
+            for (int i = 0; i < entries_de.length; i++) {
+                if (entries_de[i] == null) {
+                    entries_de[i] = "";
                 }
             }
+        }
 
-            Pattern pMuell = Pattern.compile("<[^>]+>(.+)<\\/[^<>]+>");
-            Matcher mMuell = pMuell.matcher(entries_en[i]);
-            while (mMuell.find()) {
-                entries_en[i] = entries_en[i].replace(mMuell.group(0), "\"" + mMuell.group(1) + "\"");
+
+        for (int i = 0; i < entries_en.length; i++) {
+            if (entries_en[i] != null && entries_en[i].length() > 0) {
+                CardAbilityPropEntry prop = new CardAbilityPropEntry() {{
+                    type = 0;
+                }};
+
+                Pattern pAbility = Pattern.compile("\\{\\{Ability:(\\d+)\\}\\}");
+                Matcher mAbility = pAbility.matcher(entries_en[i]);
+                if (mAbility.find() && mAbility.start() == 0) {
+                    prop.type = Integer.parseInt(mAbility.group(1));
+                    entries_en[i] = entries_en[i].replace(mAbility.group(0), "").trim();
+                    entries_de[i] = entries_de[i].replace(mAbility.group(0), "").trim();
+                }
+
+                Pattern pAttribute = Pattern.compile("\\{\\{Attribute:(\\d+)\\}\\}");
+                Matcher mAttribute = pAttribute.matcher(entries_en[i]);
+                if (mAttribute.find() && mAttribute.start() == 0) {
+                    prop.type = cardAbilityType(CardAbilityTypeActivate);
+                    prop.cost = processCardCost(entries_en[i]);
+                    do {
+                        entries_en[i] = entries_en[i].replace(mAttribute.group(0), "").trim();
+                        entries_de[i] = entries_de[i].replace(mAttribute.group(0), "").trim();
+                        mAttribute = pAttribute.matcher(entries_en[i]);
+                    } while (mAttribute.find() && mAttribute.start() == 0);
+                }
+
+                if (entries_en[i].length() > 0 && entries_de[i].length() > 0) {
+                    prop.value = new MultiLanguageString(entries_en[i], entries_de[i]);
+                }
+                ret.add(prop);
+            } else {
+                System.out.println("processCardAbility: Empty entry?!?");
             }
-            mMuell = pMuell.matcher(entries_de[i]);
-            while (mMuell.find()) {
-                entries_de[i] = entries_de[i].replace(mMuell.group(0), "\"" + mMuell.group(1) + "\"");
-            }
-
-            prop.value = new MultiLanguageString(entries_en[i], entries_de[i]);
-
-            ret.add(prop);
         }
 
         return ret;
